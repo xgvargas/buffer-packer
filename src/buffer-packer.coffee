@@ -6,25 +6,25 @@ module.exports = class Packer
 
         @len = 0
 
-        @struct = struct.replace(/[^a-z0-9:=,\[\]]/g, '').split(',').map (descr) =>
+        @struct = struct.replace(/[^a-zA-Z0-9:=,\[\]-]/g, '').split(',').map (descr) =>
             [name, format] = descr.split ':'
 
             return unless format
 
-            if m = format.match ///^(s|u) (8|16|32|64) (l|b) (?: (?:\[ (?:(\d+)|(\w+)) \]) | (?: = (\d+)) )? $///
+            if m = format.match ///^(s|u) (8|16|32|64) (l|b) (?: (?:\[ (?:(\d+)|(\w+)) \]) | (?: = (-?\d+)) )? $///
                 esize = +m[2]/8
                 len = +(m[4] || 1)
                 dynamic = m[5]
                 len = 0 if dynamic
                 sign = m[1]=='s'
                 array = !!(m[4] or m[5])
-                field = {size: len*esize, len, def: m[6], dynamic, esize, endian: m[3], type: 'int', sign, array}
+                field = {size: len*esize, len, def: +m[6], dynamic, esize, endian: m[3], type: 'int', sign, array}
 
             else if m = format.match /^f(32|64)(l|b)$/
                 field = {size: +m[1]/8, endian: m[2], type: 'float'}
 
-            else if m = format.match /^pad\[(\d+)\]$/
-                field = {size: +m[1], type: 'padding'}
+            else if m = format.match /^pad\[(?:(\d+)|(\w+))\](?:=(-?\d+))?$/
+                field = {size: +(m[1] || 0), type: 'padding', dynamic: m[2], def: +m[3]}
 
             else if m = format.match /^data\[(?:(\d+)|(\w+))\]$/
                 field = {size: +(m[1] || 0), type: 'data', dynamic: m[2]}
@@ -32,7 +32,7 @@ module.exports = class Packer
             else if m = format.match /^tap\[(\w+)\]$/
                 field = {size: 0, type: 'tap', fn: m[1]}
 
-            throw new Error "Unknown format: `#{format}`" unless field.type?
+            throw new Error "Unknown format: `#{format}`" unless field?
 
             field = Object.assign field, {name, offset: @len}
             @len += field.size
@@ -71,7 +71,7 @@ module.exports = class Packer
                         throw new Error "Value `#{f.name}` must be array" unless Array.isArray d
                     else
                         if f.def
-                            d = [+f.def]
+                            d = [data[f.name] || f.def]
                         else
                             throw new Error "Missing value: `#{f.name}`" unless data[f.name]?
                             d = [data[f.name]]
@@ -106,10 +106,21 @@ module.exports = class Packer
                     else
                         d.copy buf, f.offset+fix, 0, f.size
 
+                when 'padding'
+                    p = f.offset+fix
+                    if f.dynamic
+                        throw new Error 'Missing dynamic size `#{f.dynamic}`' unless data[f.dynamic]
+                        tmp = Buffer.alloc buf.length+data[f.dynamic]
+                        buf.copy tmp
+                        buf = tmp
+                        fix += data[f.dynamic]
+
+                    buf.fill data[f.name] || f.def || 0, p, p+(f.size || data[f.dynamic])
+
                 when 'tap'
                     throw new Error "Undefined tap function: `#{f.fn}`" unless @ops[f.fn]
 
-                    data[f.name] = @ops[f.fn](buf, data)
+                    data[f.name] = @ops[f.fn](buf.slice(0, f.offset+fix), data)
 
         return buf
 
