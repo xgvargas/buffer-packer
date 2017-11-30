@@ -1,11 +1,11 @@
 {
   "name": "buffer-packer",
   "descriptions": "simple buffer packer for NodeJS",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "./lib/buffer-packer.js",
   "author": "Gustavo Vargas <xgvargas@gmail.com>",
   "license": "MIT",
-    "repository": {
+  "repository": {
     "type": "git",
     "url": "https://github.com/xgvargas/buffer-packer"
   },
