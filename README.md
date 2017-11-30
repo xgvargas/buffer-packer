@@ -158,4 +158,6 @@ console.log packer.unpack frame, {len: 3}
 - the last field does not appears on the result since its a unnamed constant value
 - if the supplied input Buffer if not long enough the the function returns `null`
 
+> parsing works one tag per turn, and parsed values are appended to result as soon they are available. In previous example we had to supply the value of `len` from beginning, *but*, if we had a tag resolving the value of `len` before it was needed (to define `c`´s size in that example), then we could start `unpack` without any starting object.
+
 # unpacking with streams
