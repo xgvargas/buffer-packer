@@ -11,7 +11,7 @@ module.exports = class Packer
 
             return unless format
 
-            if m = format.match ///^(s|u) (8|16|32|64) (l|b) (?: (?:\[ (?:(\d+)|(\w+)) \]) | (?: = (-?\d+)) )? $///
+            if m = format.match ///^(s|u) (8|16|32) (l|b) (?: (?:\[ (?:(\d+)|(\w+)) \]) | (?: = (-?\d+)) )? $///
                 esize = +m[2]/8
                 len = +(m[4] || 1)
                 dynamic = m[5]
@@ -97,7 +97,7 @@ module.exports = class Packer
                     throw new Error "Missing value: `#{f.name}`" unless data[f.name]?
                     d = Buffer.from data[f.name]
                     if f.dynamic
-                        throw new Error 'Missing dynamic size `#{f.dynamic}`' unless data[f.dynamic]
+                        throw new Error "Missing dynamic size `#{f.dynamic}`" unless data[f.dynamic]
                         tmp = Buffer.alloc buf.length+data[f.dynamic]
                         buf.copy tmp
                         buf = tmp
@@ -109,7 +109,7 @@ module.exports = class Packer
                 when 'padding'
                     p = f.offset+fix
                     if f.dynamic
-                        throw new Error 'Missing dynamic size `#{f.dynamic}`' unless data[f.dynamic]
+                        throw new Error "Missing dynamic size `#{f.dynamic}`" unless data[f.dynamic]
                         tmp = Buffer.alloc buf.length+data[f.dynamic]
                         buf.copy tmp
                         buf = tmp

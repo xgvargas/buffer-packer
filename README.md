@@ -46,15 +46,15 @@ let frame = packer.pack( {id: 12} );
 
 When you instantiate the Packer object you must supply a formater string which is a sequence of tags separated by `,`. Each tag is constructed as an almost mandatory `variable` name, a `:` separator and an always mandatory `format` specifier.
 
-Apart the format string, you should pass to the class constructor an object with functions in case you are using any `tap` tag in your formater.
+Apart the formater string, you should pass to the class constructor an object with functions in case you are using any `tap` tag in your formater.
 
 ### integers
 
 You can use use a tag like `variable:u16l[2]` to include 4 bytes, being 2 unsigned 16 bits values in little endian order from `variable[0]` and `variable[1]`. Also you can use `:s16b=34` to include the value `34` as a big endian signed 16 bits.
 
-Tags starts with a variable name, a `:` as separator and follows format that must start with `s` or `u` to denote signed and unsigned values, then one of `8`, `16`, `32` or `64` to set its size, and `l` or `b` to set as little or big endian order. Optionally you can define it as an array with fixed or dynamic size with `[2]` and `[myLength]` respectively, **or** you can set a default value with `=123`
+Tags starts with a variable name, a `:` as separator and follows format that must start with `s` or `u` to denote signed and unsigned values, then one of `8`, `16` or `32` to set its size, and `l` or `b` to set as little or big endian order. Optionally you can define it as an array with fixed or dynamic size with `[2]` and `[myLength]` respectively, **or** you can set a default value with `=123`
 
-When you set a default value the variable name (before `:`), is optional. Also, if you have a default value, its value will be mandatory during parsing.
+When you set a default value the variable name (before `:`), is optional. Also, if you have a default value, its value will be mandatory during parsing (unpaking).
 
 ```coffee
 packer = new Packer 'a:u8b, b:u32b, b:u32l, c:u8b[2], c:u8b[len], z:s8b=2, :s8b=2, :s8b=-2'
@@ -96,7 +96,9 @@ console.log packer.pack {a: 1, b: 2, p:255, padlen: 4}
 
 ### tap
 
-When you use the tag `variable:tap[func]` this will invoke a function called `func` with current buffer and data as parameter, and will append returned value as property `variable` in your data object. After that you can use this value to insert in your pack.
+When you use the tag `variable:tap[func]` this will invoke a function called `func` with current buffer and data as parameter, and will append returned value as property `variable` in your **data object**. After that you can use this value to insert in your pack.
+
+Again, to make it clear, the tag `tap` **will not** make changes in your pack. Here the variable name is used to inform the name of the new property that will be created in your current data object. If you want the value inserted in your pack you must do it explicitly.
 
 ```coffee
 calcCRC = (buffer, data) ->

@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "coffee -cwbo lib src",
     "build": "coffee -cbo lib src",
-    "test": "mocha --compilers coffee:coffee-script/register -R list test/*.test.coffee"
+    "test": "mocha --compilers coffee:coffee-script/register -R list test/*.test.coffee",
+    "build-test": "yarn build && mocha --compilers coffee:coffee-script/register -R list test/*.test.coffee"
   },
   "dependencies": {},
   "devDependencies": {
