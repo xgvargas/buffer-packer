@@ -77,10 +77,9 @@ module.exports = class Packer
                             d = [data[f.name]]
 
                     u = if f.sign then 'Int' else 'UInt'
-                    s = 8 * f.esize
                     e = if f.esize == 1 then '' else if f.endian=='b' then 'BE' else 'LE'
 
-                    fn = "write#{u}#{s}#{e}"
+                    fn = "write#{u}#{8*f.esize}#{e}"
 
                     for n in [0...f.len] by 1
                         buf[fn] d[n], p
@@ -126,33 +125,62 @@ module.exports = class Packer
 
     ###
     ###
-    unpack: (buf, obj={}) ->
+    unpack: (buf, obj={}, ops={forceDef:true}) ->
+
+        fix = 0
 
         for f in @struct
 
-            continue unless f
+            continue unless f #and f.name
 
             switch f.type
-                # when 'int'
+                when 'int'
+                    p = f.offset+fix
+                    if f.dynamic
+                        throw new Error "Missing dynamic size `#{f.dynamic}`" unless obj[f.dynamic]
+                        f.len = obj[f.dynamic]
+                        f.size = f.len*f.esize
+                        fix += f.size
 
+                    return null unless buf.length >= p + f.size
 
-
-                when 'byte', 'word', 'dw', 'qw'
                     u = if f.sign then 'Int' else 'UInt'
-                    s = 8 * f.size
-                    e = if f.size == 1 then '' else if f.endian=='b' then 'BE' else 'LE'
+                    e = if f.esize == 1 then '' else if f.endian=='b' then 'BE' else 'LE'
 
-                    obj[f.name] = buf["read#{u}#{s}#{e}"] f.offset
+                    fn = "read#{u}#{8*f.esize}#{e}"
+
+                    d = []
+                    for n in [0...f.len] by 1
+                        d.push buf[fn] p
+                        p += f.esize
+
+                        if f.array
+                            obj[f.name] = d
+                        else
+                            if f.def and not f.name
+                                return null unless d[0] == f.def
+                            obj[f.name] = d[0] if f.name
 
                 when 'float'
+
+                    return null unless buf.length >= f.offset+fix + f.size
+
                     s = if f.size==4 then 'Float' else 'Double'
                     e = if f.endian=='b' then 'BE' else 'LE'
 
-                    obj[f.name] = buf["read#{s}#{e}"] f.offset
+                    obj[f.name] = buf["read#{s}#{e}"] f.offset+fix
 
                 when 'data'
+                    p = f.offset+fix
+                    if f.dynamic
+                        throw new Error "Missing dynamic size `#{f.dynamic}`" unless obj[f.dynamic]
+                        f.size = obj[f.dynamic]
+                        fix += f.size
+
+                    return null unless buf.length >= p + f.size
+
                     obj[f.name] = Buffer.alloc f.size
-                    buf.copy obj[f.name], 0, f.offset, f.offset+f.size
+                    buf.copy obj[f.name], 0, p, p+f.size
 
         return obj
 
