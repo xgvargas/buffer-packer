@@ -184,8 +184,6 @@ module.exports = class Packer
 
         return obj
 
-
-
     ###
     ###
     createUnpacker: ->

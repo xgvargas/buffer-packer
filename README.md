@@ -135,4 +135,27 @@ console.log packer.pack data
 
 # unpacking
 
-> TODO    
+Once you have a packer instance you can feed it with a Buffer to get the original data object used to pack it. Example:
+
+```coffee
+packer = new Packer 'a:u8b, b:u32l, :pad[3] , text:data[2], c:u8b[len], z:u8b=12, :u8b=14'
+
+frame = packer.pack {a:5, b: 0x12345678, c:[1,2,3,4], text:'string', len:3}
+
+console.log frame
+# outputs: <Buffer 05 12 34 56 78 78 56 34 12 00 00 00 01 02 01 02 03 0c 0e> 
+
+console.log packer.unpack frame, {len: 3}
+# outputs: { len: 3, a: 5, b: 305419896, text: <Buffer 73 74>, c: [ 1, 2, 3 ], z: 12 }
+
+```
+
+**Important** points to note:
+
+- note we had to provide a starting object to unpack with `len` so it knows the dynamic size of c property
+- data field always return as Buffer (see the `text` field above)
+- the parsed `c` and `text` area both smaller then original values since we only packed part of them
+- the last field does not appears on the result since its a unnamed constant value
+- if the supplied input Buffer if not long enough the the function returns `null`
+
+# unpacking with streams
