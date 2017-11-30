@@ -1,0 +1,18 @@
+{
+  "name": "buffer-packer",
+  "descriptions": "simple buffer packer for NodeJS",
+  "version": "0.1.0",
+  "main": "./lib/buffer-packer.js",
+  "author": "Gustavo Vargas <xgvargas@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "dev": "coffee -cwbo lib src",
+    "build": "coffee -cbo lib src",
+    "test": "mocha --compilers coffee:coffee-script/register -R list test/*.test.coffee"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1"
+  }
+}
