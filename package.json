@@ -5,6 +5,14 @@
   "main": "./lib/buffer-packer.js",
   "author": "Gustavo Vargas <xgvargas@gmail.com>",
   "license": "MIT",
+    "repository": {
+    "type": "git",
+    "url": "https://github.com/xgvargas/buffer-packer"
+  },
+  "bugs": {
+    "url": "https://github.com/xgvargas/buffer-packer/issues"
+  },
+  "homepage": "https://github.com/xgvargas/buffer-packer#buffer-packer",
   "scripts": {
     "dev": "coffee -cwbo lib src",
     "build": "coffee -cbo lib src",
