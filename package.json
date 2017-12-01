@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "coffee -cwbo lib src",
     "build": "coffee -cbo lib src",
-    "beforepublish": "yarn build",
+    "prepublish": "yarn build",
     "test": "mocha --compilers coffee:coffee-script/register -R list test/*.test.coffee",
     "build-test": "yarn build && mocha --compilers coffee:coffee-script/register -R list test/*.test.coffee"
   },

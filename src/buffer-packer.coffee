@@ -142,7 +142,7 @@ module.exports = class Packer
                         f.size = f.len*f.esize
                         fix += f.size
 
-                    return null unless buf.length >= p + f.size
+                    return {err:'too short'} unless buf.length >= p + f.size
 
                     u = if f.sign then 'Int' else 'UInt'
                     e = if f.esize == 1 then '' else if f.endian=='b' then 'BE' else 'LE'
@@ -158,12 +158,12 @@ module.exports = class Packer
                             obj[f.name] = d
                         else
                             if f.def and not f.name
-                                return null unless d[0] == f.def
+                                return {err:'wrong default'} unless d[0] == f.def
                             obj[f.name] = d[0] if f.name
 
                 when 'float'
 
-                    return null unless buf.length >= f.offset+fix + f.size
+                    return {err:'too short'} unless buf.length >= f.offset+fix + f.size
 
                     s = if f.size==4 then 'Float' else 'Double'
                     e = if f.endian=='b' then 'BE' else 'LE'
@@ -177,12 +177,12 @@ module.exports = class Packer
                         f.size = obj[f.dynamic]
                         fix += f.size
 
-                    return null unless buf.length >= p + f.size
+                    return {err: 'too short'} unless buf.length >= p + f.size
 
                     obj[f.name] = Buffer.alloc f.size
                     buf.copy obj[f.name], 0, p, p+f.size
 
-        return obj
+        return {obj, size: 1} # TODO
 
     ###
     ###
