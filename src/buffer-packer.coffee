@@ -182,6 +182,12 @@ module.exports = class Packer
                     obj[f.name] = Buffer.alloc f.size
                     buf.copy obj[f.name], 0, p, p+f.size
 
+                when 'tap'
+                    throw new Error "Undefined tap function: `#{f.fn}`" unless @ops[f.fn]
+
+                    obj[f.name] = @ops[f.fn](buf.slice(0, f.offset+fix), obj)
+
+
         return {obj, size: 1} # TODO
 
     ###
