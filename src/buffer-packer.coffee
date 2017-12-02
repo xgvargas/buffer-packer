@@ -11,7 +11,7 @@ module.exports = class Packer
 
             return unless format
 
-            if m = format.match ///^(s|u) (8|16|32) (l|b) (?: (?:\[ (?:(\d+)|(\w+)) \]) | (?: = (-?\d+)) )? $///
+            if m = format.match ///^(s|u) (8|16|32) (l|b) (?: (?:\[ (?:(\d+)|(\w+)) \]) | (?: = (-?(?:0x)?\d+)) )? $///
                 esize = +m[2]/8
                 len = +(m[4] || 1)
                 dynamic = m[5]
@@ -23,7 +23,7 @@ module.exports = class Packer
             else if m = format.match /^f(32|64)(l|b)$/
                 field = {size: +m[1]/8, endian: m[2], type: 'float'}
 
-            else if m = format.match /^pad\[(?:(\d+)|(\w+))\](?:=(-?\d+))?$/
+            else if m = format.match /^pad\[(?:(\d+)|(\w+))\](?:=(-?(?:0x)?\d+))?$/
                 field = {size: +(m[1] || 0), type: 'padding', dynamic: m[2], def: +m[3]}
 
             else if m = format.match /^data\[(?:(\d+)|(\w+))\]$/
@@ -119,6 +119,8 @@ module.exports = class Packer
                 when 'tap'
                     throw new Error "Undefined tap function: `#{f.fn}`" unless @ops[f.fn]
 
+                    # process.stderr.write "PACK:[[#{f.offset}-#{fix} `#{buf.slice(0, f.offset+fix).toString('hex')}` #{@ops[f.fn](buf.slice(0, f.offset+fix), data).toString(16)}]]"
+
                     data[f.name] = @ops[f.fn](buf.slice(0, f.offset+fix), data)
 
         return buf
@@ -184,6 +186,8 @@ module.exports = class Packer
 
                 when 'tap'
                     throw new Error "Undefined tap function: `#{f.fn}`" unless @ops[f.fn]
+
+                    # process.stderr.write "PARSE:[[#{f.offset}-#{fix} `#{buf.slice(0, f.offset+fix).toString('hex')}` #{@ops[f.fn](buf.slice(0, f.offset+fix), obj).toString(16)}]]"
 
                     obj[f.name] = @ops[f.fn](buf.slice(0, f.offset+fix), obj)
 
