@@ -18,7 +18,7 @@ console.log frame
 # outputs: <Buffer 01 02 12 34> 
 
 console.log packer.unpack frame
-# outputs: {id: 1, func: 2, addr: 0x1234}
+# outputs: {size: 4, obj: {id: 1, func: 2, addr: 0x1234}}
 
 ```
 
@@ -86,7 +86,7 @@ console.log packer.pack {a:'abcdef', b: [1,2], len: 2}
 
 ### padding
 
-The tag `:pad[3]` will append 3 bytes of padding zeroes in your data. When a variable name is supplied it should be a 8 bits values to be used as padding. You also can set a default value to be used as padding with `:pad[3]=255` which will append byte `0xff` 3 times to your pack. As in previous cases the size can be fixed or dynamic.
+The tag `:pad[3]` will append 3 bytes of padding zeroes in your pack. When a variable name is supplied it should be a 8 bits values to be used as padding. You also can set a default value to be used as padding with `:pad[3]=255` which will append byte `0xff` 3 times to your pack. As in previous cases the size can be fixed or dynamic.
 
 ```coffee
 packer = new Packer 'a:u8b, :pad[3], p:pad[2], :pad[padlen]=5, b:u8b'
@@ -145,19 +145,27 @@ frame = packer.pack {a:5, b: 0x12345678, c:[1,2,3,4], text:'string', len:3}
 console.log frame
 # outputs: <Buffer 05 12 34 56 78 78 56 34 12 00 00 00 01 02 01 02 03 0c 0e> 
 
+console.log packer.unpack frame.slice(0,5), {len: 3}
+# outputs: {err: 'too short'}
+
+console.log packer.unpack frame
+# will throw "Missing dynamic size `len`"
+
 console.log packer.unpack frame, {len: 3}
-# outputs: { len: 3, a: 5, b: 305419896, text: <Buffer 73 74>, c: [ 1, 2, 3 ], z: 12 }
+# outputs: {size: 19, obj: { len: 3, a: 5, b: 305419896, text: <Buffer 73 74>, c: [ 1, 2, 3 ], z: 12 }}
 
 ```
 
 **Important** points to note:
 
-- note we had to provide a starting object to unpack with `len` so it knows the dynamic size of c property
+- note we had to provide a starting data object to unpack with `len` initialized so it knows the dynamic size of c property
 - data field always return as Buffer (see the `text` field above)
-- the parsed `c` and `text` area both smaller then original values since we only packed part of them
+- the parsed `c` and `text` are both smaller then original values since we only packed part of them
 - the last field does not appears on the result since its a unnamed constant value
-- if the supplied input Buffer if not long enough the the function returns `null`
+- the returned object has the property `obj` when the unpacking succeed *or* `err` when it fails (in this case `err` is a string with a brief description of the cause of failure)
+- when unpacking succeed you also got a `size` property, note that if you have any dynamic sized property in your pack then your size will change between packs
+- recoverable errors like being `too short` or `wrong default` do not throw, so you can wait for more data an try again for example. In other hand an error like `Missing dynamic size` will throw since is likely to be and design error.
 
-> parsing works one tag per turn, and parsed values are appended to result as soon they are available. In previous example we had to supply the value of `len` from beginning, *but*, if we had a tag resolving the value of `len` before it was needed (to define `c`´s size in that example), then we could start `unpack` without any starting object.
+> parsing works one tag per turn, and parsed values are appended to result as soon they are available. In previous example we had to supply the value of `len` from beginning, *but*, if we had a tag resolving the value of `len` before it was needed (to define `c`´s size in that example), then we could execute `unpack` without any starting object.
 
 # unpacking with streams
