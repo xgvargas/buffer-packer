@@ -70,7 +70,7 @@ module.exports = class Packer
                         d = data[f.name]
                         throw new Error "Value `#{f.name}` must be array" unless Array.isArray d
                     else
-                        if f.def
+                        if f.def?
                             d = [data[f.name] || f.def]
                         else
                             throw new Error "Missing value: `#{f.name}`" unless data[f.name]?
@@ -159,7 +159,7 @@ module.exports = class Packer
                         if f.array
                             obj[f.name] = d
                         else
-                            if f.def and not f.name
+                            if f.def? and not f.name
                                 return {err:'wrong default'} unless d[0] == f.def
                             obj[f.name] = d[0] if f.name
 

@@ -164,7 +164,7 @@ console.log packer.unpack frame, {len: 3}
 - the last field does not appears on the result since its a unnamed constant value
 - the returned object has the property `obj` when the unpacking succeed *or* `err` when it fails (in this case `err` is a string with a brief description of the cause of failure)
 - when unpacking succeed you also got a `size` property, note that if you have any dynamic sized property in your pack then your size will change between packs
-- recoverable errors like being `too short` or `wrong default` do not throw, so you can wait for more data an try again for example. In other hand an error like `Missing dynamic size` will throw since is likely to be and design error.
+- recoverable errors like being `too short` or `wrong default` do not throw, so you can wait for more data an try again, for example. In other hand an error like `Missing dynamic size` will throw since is likely to be a design error.
 
 > parsing works one tag per turn, and parsed values are appended to result as soon they are available. In previous example we had to supply the value of `len` from beginning, *but*, if we had a tag resolving the value of `len` before it was needed (to define `c`´s size in that example), then we could execute `unpack` without any starting object.
 
